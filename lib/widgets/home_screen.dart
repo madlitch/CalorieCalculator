@@ -188,10 +188,11 @@ class _HomeScreenState extends State<HomeScreen> {
             TextButton(
               child: const Text('Add'),
               onPressed: () {
-                var newFood = Food(
+                var newFood = Food.withKey(
                   id: 1,
                   name: nameController.text,
                   calories: int.parse(caloriesController.text),
+                  uniqueKey: uuid.v4(),
                 );
                 addFoodCallback(newFood);
                 Navigator.of(context).pop();
@@ -243,10 +244,11 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Text('Save'),
               onPressed: () async {
                 var editedFood = Food.withKey(
-                    id: food.id,
-                    name: nameController.text,
-                    calories: int.parse(caloriesController.text),
-                    uniqueKey: uuid.v4());
+                  id: food.id,
+                  name: nameController.text,
+                  calories: int.parse(caloriesController.text),
+                  uniqueKey: uuid.v4(),
+                );
                 await database.updateFood(editedFood);
                 editFoodCallback(editedFood);
                 if (!mounted) return;
