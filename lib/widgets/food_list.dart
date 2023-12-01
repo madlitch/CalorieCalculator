@@ -26,12 +26,14 @@ class FoodList extends StatefulWidget {
 class FoodListState extends State<FoodList> {
   List<Food> _foods = [];
 
+  // make food list parameter mutable
   @override
   void initState() {
     super.initState();
     _foods = widget.foods;
   }
 
+  // allow the state of this widget to be updated from its parent by GlobalKey
   void updateFoods(Food newFood) {
     setState(() {
       _foods.insert(0, newFood);
@@ -82,15 +84,18 @@ class FoodListState extends State<FoodList> {
   }
 }
 
+// need to replace the widget at the same spot, since the dismissible widget
+// is still in the widget tree when dismissed
 void replaceFoodInList(List<Food> foods, Food newFood) {
   for (int i = 0; i < foods.length; i++) {
     if (foods[i].id == newFood.id) {
       foods[i] = newFood;
-      break; // Stop the loop once the food item is replaced
+      break;
     }
   }
 }
 
+// extracted label for optimization
 class DismissibleLabel extends StatelessWidget {
   const DismissibleLabel({
     super.key,

@@ -5,6 +5,7 @@ var colorScheme = ColorScheme.fromSeed(
   seedColor: Colors.lightBlue,
 );
 
+// have main app separate for navigation purposes
 void main() {
   runApp(
     MaterialApp(

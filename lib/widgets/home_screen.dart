@@ -32,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadFoods();
   }
 
+  // load the foods from the database and update the relevant state
   Future<void> _loadFoods() async {
     await Future.delayed(Duration.zero);
     // await database.resetDatabase();
@@ -58,6 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // show the datepicker and update the state
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -77,6 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
+  // called to log food, if it will exceed calories show a dialog to confirm
   Future<void> _logFood(Food food) async {
     if (consumedCalories + food.calories > targetCalories) {
       showDialog(
@@ -109,10 +112,12 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // delete food
   Future<void> _deleteFood(Food food) async {
     database.deleteFood(food.id);
   }
 
+  // log food after prompt (if it will exceed target calories)
   Future<void> _actuallyLogFood(Food food) async {
     database.logFood(food, _formatDate(selectedDate), targetCalories);
     Food foodWithUniqueKey = Food.withKey(
@@ -127,6 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // callback function to remove logged food
   Future<void> _removeFood(Food food, int index) async {
     await database.deleteConsumedFood(food.id, _formatDate(selectedDate));
     setState(() {
@@ -135,13 +141,17 @@ class _HomeScreenState extends State<HomeScreen> {
           .removeWhere((listFood) => listFood.uniqueKey == food.uniqueKey);
     });
 
+    // if (!mounted) return; is used because of usage of context in an async
+    // function - there is a possibility of the widget with this context
+    // not existing anymore when the async code is completed
+
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 3),
-        content: const Text('Food deleted.'),
+        content: const Text('Logged food removed.'),
         action: SnackBarAction(
           label: 'Undo',
           onPressed: () {
@@ -155,6 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // open a dialog to add a new food
   void _showAddFoodDialog(
       BuildContext context, Function(Food) addFoodCallback) {
     final TextEditingController nameController = TextEditingController();
@@ -194,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   calories: int.parse(caloriesController.text),
                   uniqueKey: uuid.v4(),
                 );
-                addFoodCallback(newFood);
+                addFoodCallback(newFood); // update state of child widget
                 Navigator.of(context).pop();
               },
             ),
@@ -204,12 +215,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // open a dialog to edit a food
   void _showEditFoodDialog(
       BuildContext context, Food food, Function(Food) editFoodCallback) {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController caloriesController = TextEditingController();
-    // GlobalKey<FoodListState> logFoodsKey = key;
-    print(food.calories);
+
     setState(() {
       nameController.text = food.name;
       caloriesController.text = '${food.calories}';
@@ -249,9 +260,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   calories: int.parse(caloriesController.text),
                   uniqueKey: uuid.v4(),
                 );
+
                 await database.updateFood(editedFood);
-                editFoodCallback(editedFood);
+                editFoodCallback(editedFood); // update state of child widget
+
                 if (!mounted) return;
+
                 Navigator.of(context).pop();
               },
             ),
@@ -261,6 +275,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // open the overlay to choose a food and log it
   Future<void> _openLogFoodOverlay() async {
     List<Food> foods = await database.getFoods();
     GlobalKey<FoodListState> logFoodsKey = GlobalKey();
@@ -291,7 +306,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: () {
                   _showAddFoodDialog(context, (newFood) async {
                     newFood.id = await database.addFood(newFood);
-                    logFoodsKey.currentState?.updateFoods(newFood);
+                    logFoodsKey.currentState?.updateFoods(newFood); // update state of child widget via globalkey
                   });
                 },
               ),
@@ -304,6 +319,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // show message if there are no foods logged
     Widget loggedFoodsList = const Center(
       child: Text('No foods logged. Start adding some!'),
     );
@@ -315,6 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    // main app
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: _openLogFoodOverlay,
